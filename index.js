@@ -1,20 +1,22 @@
-const http = require('http');
 const { Server } = require('socket.io');
+const serverless = require('serverless-http');
 const Pusher = require('pusher');
+const express = require('express');
+
+const app = express();
+const httpServer = require('http').createServer(app);
 
 const pusher = new Pusher({
-  appId: '1851257',
-  key: 'c8687ec0d64086e3c67f',
-  secret: '6c6657775b6fdd3e72ce',
-  cluster: 'ap2',
+  appId: process.env.PUSHER_APP_ID,
+  key: process.env.PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.PUSHER_CLUSTER,
   useTLS: true,
 });
 
-const httpServer = http.createServer();
-
 const io = new Server(httpServer, {
   cors: {
-    origin: '*', // Allow requests from all origins
+    origin: '*',
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -44,6 +46,6 @@ io.on('connection', (socket) => {
   });
 });
 
-httpServer.listen(process.env.PORT || 3000, () => {
-  console.log(`Server is listening on port ${process.env.PORT || 3000}`);
-});
+// Use serverless-http to wrap the server
+module.exports = app;
+module.exports.handler = serverless(httpServer);
