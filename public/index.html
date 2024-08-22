@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gupshup Chat</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      #chat-container {
+        max-width: 600px;
+        margin: 50px auto;
+      }
+      #messages {
+        list-style-type: none;
+        padding: 0;
+        height: 300px;
+        overflow-y: scroll;
+        border: 1px solid #ccc;
+        margin-bottom: 10px;
+      }
+      #messages li {
+        padding: 5px 10px;
+      }
+      #input-container {
+        display: flex;
+      }
+      #message-input {
+        flex: 1;
+        padding: 10px;
+      }
+      #send-button {
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="chat-container">
+      <ul id="messages"></ul>
+      <div id="input-container">
+        <input
+          id="message-input"
+          autocomplete="off"
+          placeholder="Type your message"
+        />
+        <button id="send-button">Send</button>
+      </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+
+      const messagesList = document.getElementById("messages");
+      const messageInput = document.getElementById("message-input");
+      const sendButton = document.getElementById("send-button");
+
+      const appendMessage = (message) => {
+        const li = document.createElement("li");
+        li.textContent = message;
+        messagesList.appendChild(li);
+      };
+
+      // Prompt user for their name
+      const name = prompt("Enter your name:");
+      socket.emit("new-user-joined", name);
+
+      sendButton.addEventListener("click", () => {
+        const message = messageInput.value;
+        appendMessage(`You: ${message}`);
+        socket.emit("send", message);
+        messageInput.value = "";
+      });
+
+      socket.on("user-joined", (name) => {
+        appendMessage(`${name} joined the chat`);
+      });
+
+      socket.on("receive", (data) => {
+        appendMessage(`${data.name}: ${data.message}`);
+      });
+
+      socket.on("left", (name) => {
+        appendMessage(`${name} left the chat`);
+      });
+    </script>
+  </body>
+</html>
