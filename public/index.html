@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #282c34;
+        color: #61dafb;
+      }
+      .container {
+        max-width: 800px;
+        margin: 50px auto;
+        text-align: center;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        padding: 10px;
+        border: 1px solid #61dafb;
+      }
+      th {
+        background-color: #20232a;
+      }
+      button {
+        padding: 5px 10px;
+        background-color: #61dafb;
+        border: none;
+        cursor: pointer;
+        color: #282c34;
+      }
+      button:hover {
+        background-color: #21a1f1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Admin Panel</h1>
+      <p>Manage connected users</p>
+      <table>
+        <thead>
+          <tr>
+            <th>User ID</th>
+            <th>Name</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="user-table"></tbody>
+      </table>
+    </div>
+
+    <script>
+      const fetchUsers = async () => {
+        try {
+          const res = await fetch("/admin/users");
+          if (res.ok) {
+            const users = await res.json();
+            const userTable = document.getElementById("user-table");
+            userTable.innerHTML = "";
+
+            for (const [id, name] of Object.entries(users)) {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${id}</td>
+                <td>${name}</td>
+                <td>
+                  <button onclick="kickUser('${id}')">Kick</button>
+                </td>
+              `;
+              userTable.appendChild(row);
+            }
+          } else {
+            alert("Failed to fetch users: " + res.statusText);
+          }
+        } catch (error) {
+          console.error("Error fetching users:", error);
+        }
+      };
+
+      const kickUser = async (id) => {
+        try {
+          const res = await fetch("/admin/kick", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id }),
+          });
+          if (res.ok) {
+            alert("User kicked successfully.");
+            fetchUsers();
+          } else {
+            alert("Failed to kick user: " + res.statusText);
+          }
+        } catch (error) {
+          console.error("Error kicking user:", error);
+        }
+      };
+
+      // Fetch users periodically
+      setInterval(fetchUsers, 5000);
+      fetchUsers();
+    </script>
+  </body>
+</html>
